@@ -12,37 +12,41 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Literal
 
-# Example schemas (replace with your own):
-
-class User(BaseModel):
+class JournalEntry(BaseModel):
     """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Trading journal entries
+    Collection name: "journalentry"
     """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    date: str = Field(..., description="ISO date string YYYY-MM-DD")
+    instrument: str = Field(..., description="Instrument traded, e.g., ES, NQ, XAUUSD")
+    session: Literal["NY", "London", "Asia", "Other"] = Field(..., description="Trading session")
+    rr: Optional[float] = Field(None, description="Risk/Reward ratio")
+    lot_size: Optional[float] = Field(None, description="Lot size or contracts")
+    outcome: Literal["Win", "Loss", "Break-even"] = Field(..., description="Trade outcome")
+    notes: Optional[str] = Field("", description="Free-form notes for the entry")
+    tags: List[str] = Field(default_factory=list, description="Tags for categorization")
+    screenshots: List[str] = Field(default_factory=list, description="Base64 data URLs of screenshots")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class JournalEntryCreate(BaseModel):
+    date: str
+    instrument: str
+    session: Literal["NY", "London", "Asia", "Other"]
+    rr: Optional[float] = None
+    lot_size: Optional[float] = None
+    outcome: Literal["Win", "Loss", "Break-even"]
+    notes: Optional[str] = ""
+    tags: List[str] = []
+    screenshots: List[str] = []
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class JournalEntryUpdate(BaseModel):
+    date: Optional[str] = None
+    instrument: Optional[str] = None
+    session: Optional[Literal["NY", "London", "Asia", "Other"]] = None
+    rr: Optional[float] = None
+    lot_size: Optional[float] = None
+    outcome: Optional[Literal["Win", "Loss", "Break-even"]] = None
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+    screenshots: Optional[List[str]] = None
